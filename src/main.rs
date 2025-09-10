@@ -493,7 +493,7 @@ fn handle_command(
             } else {
                 "清屏刷新"
             };
-            
+
             let _ = event_tx.send(AppEvent::ShowMessage(
                 format!("歌词显示模式已切换为: {}", mode_name),
                 FlashLevel::Ok,
@@ -560,7 +560,7 @@ fn handle_command(
             pl.mode = mode;
             state.ui.lock().mode = mode;
             drop(pl);
-            
+
             let _ = event_tx.send(AppEvent::ShowMessage(
                 format!("已切换到{}", mode_name),
                 FlashLevel::Ok,
