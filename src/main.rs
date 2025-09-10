@@ -508,19 +508,62 @@ fn handle_command(
             show_now_playing(state, event_tx);
         }
 
-        Command::Search(_query) => {
-            // TODO: 实现搜索功能
-            let _ = event_tx.send(AppEvent::ShowMessage(
-                "搜索功能待实现".to_string(),
-                FlashLevel::Info,
-            ));
+        Command::Search(query) => {
+            if check_playlist_empty(state, event_tx) {
+                return;
+            }
+
+            let pl = state.playlist.lock();
+            let results = pl.search(&query);
+            drop(pl);
+
+            if results.is_empty() {
+                let _ = event_tx.send(AppEvent::ShowMessage(
+                    format!("没有找到包含 '{}' 的歌曲", query),
+                    FlashLevel::Info,
+                ));
+            } else {
+                let mut msg = format!("搜索 '{}' 的结果：\n", query);
+                for (idx, path) in results {
+                    let name = path
+                        .file_name()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or("未知文件名");
+                    msg.push_str(&format!("  {}. {}\n", idx + 1, name));
+                }
+                msg.push_str("\n使用 /play <N> 播放指定歌曲");
+                let _ = event_tx.send(AppEvent::ShowMessage(msg, FlashLevel::Info));
+            }
         }
 
-        Command::Mode(_mode) => {
-            // TODO: 实现模式切换功能
+        Command::Mode(mode) => {
+            if check_playlist_empty(state, event_tx) {
+                return;
+            }
+
+            let mut pl = state.playlist.lock();
+            let mode_name = match mode {
+                PlaybackMode::Sequential => "顺序播放模式",
+                PlaybackMode::RepeatOne => "单曲循环模式",
+                PlaybackMode::Shuffle => "随机播放模式",
+            };
+
+            // 检查是否已经是该模式
+            if pl.mode == mode {
+                let _ = event_tx.send(AppEvent::ShowMessage(
+                    format!("已经是{}", mode_name),
+                    FlashLevel::Info,
+                ));
+                return;
+            }
+
+            pl.mode = mode;
+            state.ui.lock().mode = mode;
+            drop(pl);
+            
             let _ = event_tx.send(AppEvent::ShowMessage(
-                "模式切换功能待实现".to_string(),
-                FlashLevel::Info,
+                format!("已切换到{}", mode_name),
+                FlashLevel::Ok,
             ));
         }
 
@@ -818,6 +861,7 @@ fn help_text() -> String {
     s.push_str("/help                显示帮助\n");
     s.push_str("/folder <path>       选择音乐文件夹\n");
     s.push_str("/list                列出播放列表\n");
+    s.push_str("/search <keyword>    搜索歌曲\n");
     s.push_str("/play <N>            播放第 N 首(从1开始)，默认播放第一首\n");
     s.push_str("/pause               暂停\n");
     s.push_str("/resume              继续\n");
