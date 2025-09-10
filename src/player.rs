@@ -3,7 +3,6 @@ use std::{
     fs::File,
     io::BufReader,
     path::Path,
-    thread,
     time::{Duration, Instant},
 };
 
