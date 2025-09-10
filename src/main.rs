@@ -56,7 +56,7 @@ fn main() -> anyhow::Result<()> {
     let (event_tx, event_rx): (Sender<AppEvent>, Receiver<AppEvent>) = unbounded();
 
     // 启动播放线程
-    {
+    let audio_handle = {
         let state = app_state.clone();
         let cmd_rx = cmd_rx.clone();
         let event_tx = event_tx.clone();
@@ -69,23 +69,27 @@ fn main() -> anyhow::Result<()> {
                 }
             };
             audio_thread(state, cmd_rx, event_tx, &mut player);
-        });
-    }
+        })
+    };
 
     // 启动UI刷新线程
-    {
+    let ui_handle = {
         let state = app_state.clone();
         let event_rx = event_rx.clone();
         thread::spawn(move || {
             ui_thread(state, event_rx);
-        });
-    }
+        })
+    };
 
     // 显示初始欢迎信息
     println!("{}", help_text());
 
     // 主线程处理用户输入
     input_thread(app_state, cmd_tx, event_tx)?;
+
+    // 等待所有线程结束
+    let _ = audio_handle.join();
+    let _ = ui_handle.join();
 
     Ok(())
 }
@@ -102,6 +106,8 @@ fn audio_thread(
             recv(cmd_rx) -> cmd => {
                 match cmd {
                     Ok(Command::Quit) => {
+                        // 停止播放并清理资源
+                        player.stop();
                         let _ = event_tx.send(AppEvent::Shutdown);
                         break;
                     }

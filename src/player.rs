@@ -93,4 +93,15 @@ impl Player {
             0
         }
     }
+
+    /// 停止播放并清理资源
+    pub fn stop(&mut self) {
+        if let Some(sink) = &self.sink {
+            sink.stop();
+        }
+        self.sink = None;
+        self.started_at = None;
+        self.paused_at = None;
+        self.elapsed_pause = Duration::ZERO;
+    }
 }

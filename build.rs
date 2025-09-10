@@ -5,12 +5,12 @@ fn main() {
     #[cfg(target_os = "windows")]
     {
         let mut res = winres::WindowsResource::new();
-        
+
         // 设置应用程序图标
         if Path::new("icon.ico").exists() {
             res.set_icon("icon.ico");
         }
-        
+
         // 设置应用程序信息
         res.set("ProductName", "BeatCLI");
         res.set("ProductVersion", "0.1.0");
@@ -18,13 +18,15 @@ fn main() {
         res.set("CompanyName", "BeatCLI Team");
         res.set("LegalCopyright", "Copyright (c) 2024");
         res.set("OriginalFilename", "BeatCLI.exe");
-        
+        res.set("FileVersion", "0.1.0");
+        res.set("InternalName", "BeatCLI");
+
         // 编译资源
         if let Err(e) = res.compile() {
             eprintln!("Warning: Failed to compile Windows resources: {}", e);
         }
     }
-    
+
     // 告诉 Cargo 如果图标文件改变了就重新构建
     println!("cargo:rerun-if-changed=icon.ico");
     println!("cargo:rerun-if-changed=icon.svg");
