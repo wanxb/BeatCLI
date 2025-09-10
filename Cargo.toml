@@ -2,6 +2,11 @@
 name = "BeatCLI"
 version = "0.1.0"
 edition = "2024"
+description = "跨平台控制台音乐播放器"
+authors = ["BeatCLI Team"]
+license = "MIT"
+keywords = ["music", "player", "cli", "audio"]
+categories = ["multimedia::audio", "command-line-utilities"]
 
 [dependencies]
 anyhow = "1"
@@ -12,3 +17,6 @@ crossbeam-channel = "0.5"
 crossterm = "0.27"
 rodio = "0.17"
 unicode-width = "0.1"
+
+[build-dependencies]
+winres = "0.1"
