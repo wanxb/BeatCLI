@@ -29,4 +29,5 @@ fn main() {
 
     // 告诉 Cargo 如果图标文件改变了就重新构建
     println!("cargo:rerun-if-changed=icon.ico");
+    println!("cargo:rerun-if-changed=icon.svg");
 }
